@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rastreo Collar1</title>
+</head>
+<body>
+    <h1>Rastreo Collar 1</h1>
+    <p>Esperando ubicación...</p>
+
+    <script>
+        let socket;
+        let watchId;
+
+        function initSocket() {
+            // Reemplaza con la URL pública de ngrok que te proporciona el servidor en la laptop
+            socket = new WebSocket('ws://<subdominio>.ngrok.io'); // Asegúrate de poner la URL correcta de ngrok
+            
+            socket.onopen = () => {
+                console.log('Conexión WebSocket abierta');
+                startTracking();
+            };
+
+            socket.onclose = () => {
+                console.log('Conexión WebSocket cerrada');
+                stopTracking();
+            };
+
+            socket.onerror = (error) => {
+                console.log('Error en WebSocket:', error);
+            };
+        }
+
+        function startTracking() {
+            if (navigator.geolocation) {
+                // Usamos el método watchPosition para obtener la ubicación continuamente
+                watchId = navigator.geolocation.watchPosition(
+                    (position) => {
+                        const pos = {
+                            lat: position.coords.latitude, // Coordenada de latitud
+                            lng: position.coords.longitude, // Coordenada de longitud
+                            timestamp: Date.now() // Tiempo de la actualización
+                        };
+
+                        // Enviar la ubicación al servidor WebSocket
+                        socket.send(JSON.stringify({
+                            type: 'location', // Tipo de mensaje
+                            deviceId: 'collar1',  // Aquí indicamos que es el collar1
+                            ...pos // Enviar las coordenadas y el tiempo
+                        }));
+                    },
+                    (error) => {
+                        console.log('Error al obtener ubicación:', error);
+                    },
+                    {
+                        enableHighAccuracy: true, // Habilitar precisión de alta precisión
+                        maximumAge: 0,  // No usar datos antiguos
+                        timeout: 10000  // Esperar 10 segundos como máximo para obtener la ubicación
+                    }
+                );
+            } else {
+                console.log('Geolocalización no soportada en este navegador');
+            }
+        }
+
+        function stopTracking() {
+            if (watchId) {
+                // Detener el seguimiento de ubicación
+                navigator.geolocation.clearWatch(watchId);
+            }
+        }
+
+        // Inicializar WebSocket
+        initSocket();
+    </script>
+</body>
+</html>
