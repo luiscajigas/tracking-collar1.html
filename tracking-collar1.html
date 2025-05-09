@@ -14,8 +14,7 @@
         let watchId;
 
         function initSocket() {
-            // Reemplaza con la URL pública de ngrok que te proporciona el servidor en la laptop
-            socket = new WebSocket('ws://<subdominio>.ngrok.io'); // Asegúrate de poner la URL correcta de ngrok
+            socket = new WebSocket('wss://d434-186-99-190-205.ngrok-free.app');
             
             socket.onopen = () => {
                 console.log('Conexión WebSocket abierta');
